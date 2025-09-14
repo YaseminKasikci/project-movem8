@@ -28,7 +28,7 @@ services:
   # --- Backend Spring Boot ---
   backend:
     build:
-      context: ./movem8
+      context: ./backend-java #./movem8
       dockerfile: Dockerfile
     container_name: movem8-backend
     depends_on:
@@ -47,17 +47,17 @@ services:
       # SPRING_PROFILES_ACTIVE: prod
 
   # --- Frontend Flutter Web (servi par Nginx) ---
-  frontend:
-    build:
-      context: ./move-m8
-      dockerfile: Dockerfile
-    container_name: movem8-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      backend:
-        condition: service_started
-    restart: unless-stopped
+  # frontend:
+  #   build:
+  #     context: ./frontend-flutter #./move-m8
+  #     dockerfile: Dockerfile
+  #   container_name: movem8-frontend
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     backend:
+  #       condition: service_started
+  #   restart: unless-stopped
     
 
   # --- Postgres (DB SonarQube) ---
