@@ -1,11 +1,15 @@
 package fr.yasemin.movem8.entity;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import fr.yasemin.movem8.enums.Level;
 import fr.yasemin.movem8.enums.StatusParticipant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -43,14 +47,12 @@ public class Participant {
     //participant relier a un utilisateur
     @ManyToOne
     @JoinColumn(name = "user_id")  // Référence à l'utilisateur
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
     
     // participant relier a une activité
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "activity_id", nullable = false)
-    private Activity activity; // Référence à l'activité à laquelle le participant participe
-
-    
-    
+    private Activity activity;
     
 }

@@ -14,5 +14,5 @@ public class LoginRequestDTO {
     @NotBlank
     private String password;
 
-    // getters & setters
+
 }

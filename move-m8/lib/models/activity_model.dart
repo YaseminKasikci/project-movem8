@@ -1,15 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-
-// --- Enums ---
-// Utilise TON enum existant. Adapte l'import si besoin (ex: 'package:movem8/enums/level.dart')
 import '../enums/level.dart';
 
+/// ---------- Level helpers ----------
 Level levelFromJson(String? s) {
   if (s == null) return Level.B; // fallback
   try {
-    // Dart 2.17+ : byName sur les enums (noms attendus: D, B, I, E)
-    return Level.values.byName(s);
+    return Level.values.byName(s); // attend 'D','B','I','E'
   } catch (_) {
     return Level.B; // fallback
   }
@@ -39,14 +35,12 @@ Color _hexToColor(String hex) {
   assert(hex.startsWith('#'));
   final h = hex.replaceFirst('#', '');
   final value = (h.length == 6)
-      ? int.parse('FF$h', radix: 16) // alpha 100%
-      : int.parse(h, radix: 16);     // déjà ARGB
+      ? int.parse('FF$h', radix: 16)
+      : int.parse(h, radix: 16);
   return Color(value);
 }
 
-// ----------------------
-// CreateActivityRequest
-// ----------------------
+/// ---------- CreateActivityRequest ----------
 class CreateActivityRequest {
   final String title;
   final String? photo; // URL (optionnel)
@@ -57,6 +51,7 @@ class CreateActivityRequest {
   final int numberOfParticipant;
   final Level level;
   final int sportId;
+  final int communityId;
 
   CreateActivityRequest({
     required this.title,
@@ -67,6 +62,7 @@ class CreateActivityRequest {
     required this.numberOfParticipant,
     required this.level,
     required this.sportId,
+    required this.communityId,
     this.photo,
   });
 
@@ -80,21 +76,25 @@ class CreateActivityRequest {
         'numberOfParticipant': numberOfParticipant,
         'level': levelToJson(level),
         'sportId': sportId,
+        'communityId': communityId,
       };
 }
 
-// ----------------------
-// ActivityCard (mini carte)
-// ----------------------
+/// ---------- ActivityCard (mini carte) ----------
 class ActivityCard {
   final int id;
   final String title;
+  final String description;
   final String? photo;
   final String location;
   final DateTime dateHour;
+
+
   final double note;
+
   final int numberOfParticipant;
   final Level level;
+
   final int? sportId;
   final String? sportName;
   final int? communityId;
@@ -105,10 +105,10 @@ class ActivityCard {
   final String? creatorPhotoUrl;
   final int? creatorAge;
 
-
   ActivityCard({
     required this.id,
     required this.title,
+    required this.description,
     required this.location,
     required this.dateHour,
     required this.note,
@@ -126,28 +126,70 @@ class ActivityCard {
 
   factory ActivityCard.fromJson(Map<String, dynamic> json) {
     return ActivityCard(
-      id: (json['id'] as num).toInt(),
-      title: json['title'] as String,
+      id: _asInt(json['id']) ?? 0,
+      title: (json['title'] ?? '') as String,
+      description: (json['description'] ?? '') as String,
       photo: json['photo'] as String?,
-      location: json['location'] as String,
-      dateHour: DateTime.parse(json['dateHour'] as String),
-      note: (json['price'] as num).toDouble(),
-      numberOfParticipant: (json['numberOfParticipant'] as num).toInt(),
+      location: (json['location'] ?? '') as String,
+      dateHour: _asDateTime(json['dateHour']) ?? DateTime.now(),
+      // Ici, on tolére price/note null -> 0.0
+      note: _asDouble(json['note'] ?? json['price']) ?? 0.0,
+      numberOfParticipant: _asInt(json['numberOfParticipant']) ?? 0,
       level: levelFromJson(json['level'] as String?),
-      sportId: (json['sportId'] as num?)?.toInt(),
+      sportId: _asInt(json['sportId']),
       sportName: json['sportName'] as String?,
-      creatorId: (json['creatorId'] as num?)?.toInt(),
+      creatorId: _asInt(json['creatorId']),
       creatorFirstName: json['creatorFirstName'] as String?,
       creatorPhotoUrl: json['creatorPhotoUrl'] as String?,
-      creatorAge: (json['creatorAge'] as num?)?.toInt(),
-      communityId: (json['communityId'] as num?)?.toInt(),
+      creatorAge: _asInt(json['creatorAge']),
+      communityId: _asInt(json['communityId']),
     );
   }
 }
 
-// ----------------------
-// ActivityDetail (fiche)
-// ----------------------
+/// ---------- ActivityUpdateRequest ----------
+class ActivityUpdateRequest {
+  final String? title;
+  final String? description;
+  final String? location;
+  final DateTime? dateHour;
+  final double? price;
+  final int? numberOfParticipant;
+  final String? photo;
+  final Level? level; // optionnel
+  final int? sportId; // optionnel
+
+  ActivityUpdateRequest({
+    this.title,
+    this.description,
+    this.location,
+    this.dateHour,
+    this.price,
+    this.numberOfParticipant,
+    this.photo,
+    this.level,
+    this.sportId,
+  });
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (location != null) 'location': location,
+      if (dateHour != null)
+        'dateHour': dateHour!.toIso8601String().split('Z').first,
+      if (price != null) 'price': price,
+      if (numberOfParticipant != null)
+        'numberOfParticipant': numberOfParticipant,
+      if (photo != null) 'photo': photo,
+      if (level != null) 'level': level!.name, // 'D','B','I','E'
+      if (sportId != null) 'sportId': sportId,
+    };
+    return map;
+  }
+}
+
+/// ---------- ActivityDetail (fiche) ----------
 class ActivityDetail {
   final int id;
   final String title;
@@ -159,7 +201,7 @@ class ActivityDetail {
   final double? note;
   final int numberOfParticipant;
   final Level level;
-  final String? statusActivity; // gardé en String pour éviter le mismatch enum
+  final String? statusActivity;
 
   // sport
   final int? sportId;
@@ -198,25 +240,53 @@ class ActivityDetail {
 
   factory ActivityDetail.fromJson(Map<String, dynamic> json) {
     return ActivityDetail(
-      id: (json['id'] as num).toInt(),
-      title: json['title'] as String,
+      id: _asInt(json['id']) ?? 0,
+      title: (json['title'] ?? '') as String,
       photo: json['photo'] as String?,
-      description: json['description'] as String,
-      location: json['location'] as String,
-      dateHour: DateTime.parse(json['dateHour'] as String),
-      price: (json['price'] as num).toDouble(),
-      note: (json['note'] as num?)?.toDouble(),
-      numberOfParticipant: (json['numberOfParticipant'] as num).toInt(),
+      description: (json['description'] ?? '') as String,
+      location: (json['location'] ?? '') as String,
+      dateHour: _asDateTime(json['dateHour']) ?? DateTime.now(),
+      price: _asDouble(json['price']) ?? 0.0,
+      note: _asDouble(json['note']),
+      numberOfParticipant: _asInt(json['numberOfParticipant']) ?? 0,
       level: levelFromJson(json['level'] as String?),
       statusActivity: json['statusActivity'] as String?,
-      sportId: (json['sportId'] as num?)?.toInt(),
+      sportId: _asInt(json['sportId']),
       sportName: json['sportName'] as String?,
-      creatorId: (json['creatorId'] as num?)?.toInt(),
+      creatorId: _asInt(json['creatorId']),
       creatorFirstName: json['creatorFirstName'] as String?,
       creatorLastName: json['creatorLastName'] as String?,
       creatorPhotoUrl: json['creatorPhotoUrl'] as String?,
-      creatorAge: (json['creatorAge'] as num?)?.toInt(),
-      communityId: (json['communityId'] as num?)?.toInt(),
+      creatorAge: _asInt(json['creatorAge']),
+      communityId: _asInt(json['communityId']),
     );
   }
+}
+
+/// ---------- utils robustes pour parsing ----------
+int? _asInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v);
+  return null;
+}
+
+double? _asDouble(dynamic v) {
+  if (v == null) return null;
+  if (v is double) return v;
+  if (v is num) return v.toDouble();
+  if (v is String) return double.tryParse(v.replaceAll(',', '.'));
+  return null;
+}
+
+DateTime? _asDateTime(dynamic v) {
+  if (v == null) return null;
+  if (v is DateTime) return v;
+  if (v is String) {
+    // tente ISO standard
+    final dt = DateTime.tryParse(v);
+    if (dt != null) return dt;
+  }
+  return null;
 }

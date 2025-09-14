@@ -8,6 +8,7 @@ import fr.yasemin.movem8.entity.Activity;
 import fr.yasemin.movem8.entity.Category;
 import fr.yasemin.movem8.entity.Participant;
 import fr.yasemin.movem8.entity.User;
+import fr.yasemin.movem8.enums.Level;
 
 
 
@@ -37,7 +38,7 @@ public interface IActivityService  {
 		List<Activity> getCreatedActivities(Long userId);
 	// PARTICIPANT
 
-	boolean requestParticipant(Long activityId, Long userId) throws Exception;
+	boolean requestParticipant(Long activityId, Long userId, Level level) throws Exception;
 
 	Participant validateParticipation(Long participationId, Long creatorId) throws Exception;
 

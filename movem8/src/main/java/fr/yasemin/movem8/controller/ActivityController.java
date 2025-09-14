@@ -163,9 +163,9 @@ public class ActivityController {
     // Demander à participer à une activité
     @PostMapping("/{activityId}/request/{userId}")
     // => http://localhost:8080/api/activities/1/request/1
-    public ResponseEntity<String> requestParticipant(@PathVariable Long activityId, @PathVariable Long userId) {
+    public ResponseEntity<String> requestParticipant(@PathVariable Long activityId, @PathVariable Long userId,    @RequestParam Level level  ) {
         try {
-            if (activityService.requestParticipant(activityId, userId)) {
+            if (activityService.requestParticipant(activityId, userId, level)) {
                 return new ResponseEntity<>("Demande envoyée avec succès", HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Erreur dans l'envoi de la demande", HttpStatus.BAD_REQUEST);

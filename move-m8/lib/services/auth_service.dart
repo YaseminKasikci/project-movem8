@@ -13,8 +13,10 @@ import '../models/auth_model.dart';
 class ApiException implements Exception {
   final String message;
   ApiException(this.message);
-}
 
+  @override
+  String toString() => message;
+}
 class AuthService {
   // ----------------------
   // Helpers en-têtes
@@ -28,41 +30,51 @@ class AuthService {
   // ----------------------
   // 1) REGISTER
   // ----------------------
-  Future<void> register(String email, String password) async {
-    final uri = ApiConfig.path(['auth', 'register']);
-    try {
-      final resp = await http
-          .post(
-            uri,
-            headers: _jsonHeaders(),
-            body: jsonEncode({
-              'email': email,
-              'password': password,
-              'confirmPassword': password,
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
+Future<void> register(String email, String password) async {
+  final uri = ApiConfig.path(['auth', 'register']);
+  try {
+    final resp = await http
+        .post(
+          uri,
+          headers: _jsonHeaders(),
+          body: jsonEncode({
+            'email': email,
+            'password': password,
+            'confirmPassword': password,
+          }),
+        )
+        .timeout(const Duration(seconds: 10));
 
-      switch (resp.statusCode) {
-        case 201:
-          await initiateLogin(email, password);
-          return;
-        case 400:
-          throw ApiException('Email ou mot de passe invalide');
-        case 403:
-        case 409:
-          throw ApiException('Cet email est déjà utilisé');
-        default:
-          throw ApiException('Erreur serveur (${resp.statusCode})');
-      }
-    } on SocketException {
-      throw ApiException('Impossible de joindre le serveur.');
-    } on TimeoutException {
-      throw ApiException('Délai dépassé. Réessaie.');
-    } catch (e) {
-      throw ApiException('Erreur inattendue: $e');
+    // 👉 Log debug si ce n’est pas un succès
+    if (resp.statusCode != 201) {
+      // ignore: avoid_print
+      print('REGISTER RESP ${resp.statusCode} ${resp.body}');
     }
+
+    switch (resp.statusCode) {
+      case 201:
+        await initiateLogin(email, password);
+        return;
+      case 400:
+        throw ApiException('Email ou mot de passe invalide');
+      case 403:
+      case 409:
+        throw ApiException('Cet email est déjà utilisé');
+      default:
+        throw ApiException('Erreur serveur (${resp.statusCode})');
+    }
+  } on SocketException {
+    throw ApiException('Impossible de joindre le serveur.');
+  } on TimeoutException {
+    throw ApiException('Délai dépassé. Réessaie.');
+  } on ApiException {
+    rethrow;
+  } catch (e) {
+    throw ApiException('Erreur inattendue: $e');
   }
+}
+
+
 
   // ----------------------
   // 2) LOGIN (étape 1)

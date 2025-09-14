@@ -1,45 +1,46 @@
-// =============================
 // lib/views/maps/maps_screen.dart
-// =============================
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+
 import 'package:move_m8/models/community_model.dart';
-import 'package:move_m8/config/api_config.dart';
+import 'package:move_m8/models/activity_model.dart' as models;
+import 'package:move_m8/services/activity_service.dart';
 
-// MODELS + SERVICE (notre nouvelle API)
-import '../../models/activity_model.dart' as models;
-import '../../services/activity_service.dart';
-
-// Ton widget de carte (si tu en as un). On l'importe avec un alias pour éviter
-// le conflit de nom avec le modèle `ActivityCard`.
-import '../../widgets/activityCard.dart' as cards;
+import '../activity/activity_detail_screen.dart';
+import '../../widgets/activity_card_mock.dart';
 
 class MapsScreen extends StatefulWidget {
   final CommunityModel community;
-  const MapsScreen({Key? key, required this.community}) : super(key: key);
+
+  /// Ouvre directement l’onglet "Liste"
+  final bool openListTab;
+
+  /// true = inséré sous une page avec AppBar/BottomNav (CommunityHomeScreen)
+  /// false = page autonome (on fournit un Scaffold)
+  final bool embedded;
+
+  const MapsScreen({
+    Key? key,
+    required this.community,
+    this.openListTab = false,
+    this.embedded = true,
+  }) : super(key: key);
 
   @override
   State<MapsScreen> createState() => _MapsScreenState();
 }
 
 class _MapsScreenState extends State<MapsScreen> {
-  bool showMap = true;
-
+  late bool showMap;
   late final ActivityService _service;
-  late Future<List<models.ActivityCard>> _future; // <-- mini-cards
-
+  late Future<List<models.ActivityCard>> _future;
 
   @override
   void initState() {
     super.initState();
-    // Formats FR (mar., dim., etc.)
     initializeDateFormatting('fr_FR');
-
- // Instancie le service en utilisant l'ApiConfig basé sur Uri
-   // ApiConfig.base == http://<host>:8080/api
-    
-     _service = ActivityService();
-
+    _service = ActivityService();
+    showMap = !widget.openListTab; // si openListTab = true → on montre la Liste
     _future = _service.list(communityId: widget.community.id);
   }
 
@@ -48,49 +49,54 @@ class _MapsScreenState extends State<MapsScreen> {
     await _future;
   }
 
-  // Convertit une couleur hex "#RRGGBB" ou "RRGGBB" en Color
-  Color _hexToColor(String hex) {
-    var cleaned = hex.replaceFirst('#', '');
-    if (cleaned.length == 6) cleaned = 'FF$cleaned'; // alpha 100%
-    return Color(int.parse(cleaned, radix: 16));
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final content = Column(
       children: [
-        // Onglets "Carte" / "Liste"
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              _buildTabButton("Carte", showMap, () {
-                setState(() => showMap = true);
-              }),
-              _buildTabButton("Liste", !showMap, () {
-                setState(() => showMap = false);
-              }),
-            ],
+        // ----- Segmented Carte / Liste -----
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+          child: Material( // <- ajoute un Material parent (optionnel mais ok)
+            color: Colors.transparent,
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEDEAF2),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  _segment("Carte", showMap, () => setState(() => showMap = true)),
+                  _segment("Liste", !showMap, () => setState(() => showMap = false)),
+                ],
+              ),
+            ),
           ),
         ),
 
-        // Barre de recherche + filtre
+        // ----- Recherche + Filtre -----
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
           child: Row(
             children: [
               Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "recherche",
-                    prefixIcon: const Icon(Icons.search),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  elevation: 0,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: "Recherche",
+                      prefixIcon: const Icon(Icons.search),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey.shade400),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: Colors.grey.shade600, width: 1.2),
+                      ),
                     ),
                   ),
                 ),
@@ -98,46 +104,59 @@ class _MapsScreenState extends State<MapsScreen> {
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () {
-                  // TODO: ouvrir ton panneau de filtres
+                  // TODO: panneau de filtres
                 },
                 icon: const Icon(Icons.filter_alt_outlined),
                 label: const Text("Filtre"),
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  backgroundColor: const Color(0xFFF0E9FA),
+                  foregroundColor: const Color(0xFF8E6FD3),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
 
-        // Vue Map ou Liste
-        Expanded(
-          child: showMap ? _buildMapView() : _buildListView(),
-        ),
+        // ----- Corps : Carte OU Liste -----
+        Expanded(child: showMap ? _buildMapView() : _buildListView()),
       ],
     );
+
+    // Intégré sous CommunityHomeScreen → pas de Scaffold ici
+    if (widget.embedded) return content;
+
+    // Page autonome (au cas où tu l'ouvres seule) → évite l'erreur "No Material widget found"
+    return Scaffold(body: SafeArea(child: content));
   }
 
-  Widget _buildTabButton(String label, bool selected, VoidCallback onTap) {
+  // --------- Widgets privés ---------
+
+  Widget _segment(String label, bool selected, VoidCallback onTap) {
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
+      child: Material( // <- indispensable pour InkWell
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+            ),
             child: Text(
               label,
               style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.black : Colors.grey[700],
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: selected ? Colors.black87 : Colors.black54,
               ),
             ),
           ),
@@ -147,11 +166,15 @@ class _MapsScreenState extends State<MapsScreen> {
   }
 
   Widget _buildMapView() {
-    // Intègre ici ton GoogleMap ou ta carte
-    return const Center(child: Text("Carte Google des activités"));
+    // Remplace par GoogleMap() quand tu intègres la carte
+    return const Center(
+      child: Text(
+        "Carte Google des activités",
+        style: TextStyle(color: Colors.black54),
+      ),
+    );
   }
 
-  // Liste branchée sur le service mini-cards
   Widget _buildListView() {
     return RefreshIndicator(
       onRefresh: _reload,
@@ -160,66 +183,43 @@ class _MapsScreenState extends State<MapsScreen> {
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return ListView.builder(
+              padding: const EdgeInsets.only(top: 8),
               itemCount: 4,
               itemBuilder: (_, __) => const SizedBox(height: 220),
             );
           }
           if (snap.hasError) {
             return ListView(
+              padding: const EdgeInsets.all(24),
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Text('Erreur: ${snap.error}'),
-                ),
+                Text('Erreur: ${snap.error}'),
               ],
             );
           }
           final items = snap.data ?? [];
           if (items.isEmpty) {
             return ListView(
-              children: const [
-                Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Text('Aucune activité.'),
-                ),
-              ],
+              padding: const EdgeInsets.all(24),
+              children: const [Text('Aucune activité.')],
             );
           }
+
           return ListView.builder(
+            padding: const EdgeInsets.only(top: 8, bottom: 24),
             itemCount: items.length,
             itemBuilder: (_, i) {
               final a = items[i];
-              // Si tu as un widget custom pour la carte, utilise-le ici :
-              // return cards.ActivityCard(activity: a);
-
-              // Fallback : petite carte simple
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(12),
-                  title: Text(a.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(a.location),
-                      const SizedBox(height: 4),
-                      Text('${a.dateHour} • ${a.numberOfParticipant} pers • ${a.note == 0 ? 'Gratuit' : '${a.note.toStringAsFixed(2)}€'}'),
-                    ],
-                  ),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _hexToColor(a.level.color).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
+              return ActivityCardMock(
+                activity: a,
+                onTap: () async {
+                  final detail = await _service.getById(a.id);
+                  if (!mounted) return;
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ActivityDetailScreen(activity: detail),
                     ),
-                    child: Text(a.level.label),
-                  ),
-                  onTap: () {
-                    // TODO: naviguer vers le détail en utilisant a.id
-                  },
-                ),
+                  );
+                },
               );
             },
           );

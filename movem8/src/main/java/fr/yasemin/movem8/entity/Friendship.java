@@ -2,6 +2,9 @@ package fr.yasemin.movem8.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -30,10 +33,13 @@ public class Friendship {
 	
     @ManyToOne
     @JoinColumn(name = "user1_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user1; // Premier utilisateur de l'amitié
 
     @ManyToOne
     @JoinColumn(name = "user2_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+
     private User user2; // Deuxième utilisateur de l'amitié
 
     @Column(name = "friendship_date", nullable = false)

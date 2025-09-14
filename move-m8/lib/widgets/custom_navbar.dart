@@ -45,8 +45,8 @@ class CustomNavBar extends StatelessWidget {
               onTap: () => onTap(3),
             ),
             _NavBarItem(
-              icon: Icons.history_outlined,
-              label: 'Historic',
+              icon: Icons.notifications_none_outlined,
+              label: 'Notif',
               isSelected: currentIndex == 4,
               onTap: () => onTap(4),
             ),

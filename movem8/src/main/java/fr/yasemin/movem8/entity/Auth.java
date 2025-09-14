@@ -5,6 +5,9 @@ package fr.yasemin.movem8.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Column;
@@ -59,6 +62,7 @@ public class Auth {
     @OneToOne
     @JoinColumn(name = "user_id")
     @JsonManagedReference
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 }
 

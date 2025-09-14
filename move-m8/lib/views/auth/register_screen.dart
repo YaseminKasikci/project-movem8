@@ -1,5 +1,3 @@
-// lib/views/register_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:move_m8/views/auth/two_factor_screen.dart';
 import '../../services/auth_service.dart';
@@ -32,30 +30,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
     r'.{12,}$'                    // au moins 12 caractères
   );
 
-  Future<void> handleRegister() async {
-    setState(() => error = '');
-    final email = emailController.text.trim();
-    final pwd   = passwordController.text;
-    final conf  = confirmController.text;
-    
-    if (pwd != conf) {
-      setState(() => error = 'Les mots de passe ne correspondent pas');
-      return;
-    }
+Future<void> handleRegister() async {
+  setState(() => error = '');
+  final email = emailController.text.trim();
+  final pwd   = passwordController.text;
+  final conf  = confirmController.text;
 
-    if (!_pwdRegex.hasMatch(pwd)) {
-      setState(() => error =
-        'Le mot de passe doit faire au moins 12 caractères,\n'
-        'contenir une MAJUSCULE, un chiffre et un symbole.'
-      );
-      return;
-    }
+  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+    setState(() => error = 'Adresse email invalide');
+    return;
+  }
 
-   
+  if (pwd != conf) {
+    setState(() => error = 'Les mots de passe ne correspondent pas');
+    return;
+  }
+
+  if (!_pwdRegex.hasMatch(pwd)) {
+    setState(() => error =
+      'Le mot de passe doit faire au moins 12 caractères,\n'
+      'contenir une MAJUSCULE, un chiffre et un symbole.'
+    );
+    return;
+  }
+
   try {
     await apiService.register(email, pwd);
     if (!mounted) return;
-    // ✅ Aller directement à l’écran de saisie du code
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => TwoFactorScreen(email: email)),
@@ -65,7 +66,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   } catch (_) {
     setState(() => error = 'Erreur inattendue');
   }
-  }
+}
+
 
   @override
   Widget build(BuildContext context) {

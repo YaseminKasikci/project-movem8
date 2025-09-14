@@ -3,12 +3,16 @@ package fr.yasemin.movem8.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import fr.yasemin.movem8.enums.Level;
 import fr.yasemin.movem8.enums.StatusActivity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -78,11 +82,18 @@ public class Activity {
 	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "creator_id", nullable = false)
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private User creator;
 
 	// une activité peut avoir plusieurs participants lier par table participant
-	@OneToMany(mappedBy = "activity", fetch = FetchType.LAZY)
-	private List<Participant> participants; 
+	@OneToMany(
+		    mappedBy = "activity",
+		    fetch = FetchType.LAZY,
+		    cascade = CascadeType.REMOVE,   
+		    orphanRemoval = true
+		)
+		private List<Participant> participants;
+
 
 	// L’activité appartient à une communauté
 	@ManyToOne
@@ -96,6 +107,4 @@ public class Activity {
 	@ManyToOne
 	@JoinColumn(name = "sport_id")
 	private Sport sport;
-
-
 }

@@ -14,9 +14,8 @@
 	<groupId>fr.yasemin</groupId>
 	<artifactId>movem8</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
+	<name>movem8-backend</name>
 	<description>project movem8</description>
-
 	<url />
 	<licenses>
 		<license />

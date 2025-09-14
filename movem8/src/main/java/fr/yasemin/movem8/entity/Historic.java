@@ -1,5 +1,8 @@
 package fr.yasemin.movem8.entity;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import fr.yasemin.movem8.enums.RoleHistoric;
 import fr.yasemin.movem8.enums.StatusActivity;
 import jakarta.persistence.Column;
@@ -40,6 +43,7 @@ public class Historic {
     
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne

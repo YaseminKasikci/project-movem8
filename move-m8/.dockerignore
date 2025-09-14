@@ -1,15 +1,16 @@
-.git
-.build
+build
 .dart_tool
+.packages
 .flutter-plugins
 .flutter-plugins-dependencies
-.packages
-.pub-cache
-android/.gradle
-android/.idea
-build
-ios/Pods
-
+.android
+.ios
+.idea
+*.iml
+.git
+.gitignore
+*
+!build/web
 
 
 

@@ -91,11 +91,11 @@ class _ChooseCategoryScreenState extends State<ChooseCategoryScreen> {
         return Icons.sports_tennis;
       case 'water':
         return Icons.pool;
-      case 'mountain':
+      case 'mountain / outdoor':
         return Icons.terrain;
       case 'snow':
         return Icons.ac_unit;
-      case 'combat':
+      case 'fight':
         return Icons.sports_mma;
       case 'team':
         return Icons.groups;

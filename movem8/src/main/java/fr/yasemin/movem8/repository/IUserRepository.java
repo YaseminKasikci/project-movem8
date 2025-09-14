@@ -18,6 +18,7 @@ public interface IUserRepository extends JpaRepository<User, Long> {
 	List<User> findAllByCommunityId(Long communityId);
 	List<User> findByCommunityId(Long communityId);
 	
+	
 	//redefinition SOLID
 	// creéer ses  propres methode 
 	// mettre <List> si element non unique

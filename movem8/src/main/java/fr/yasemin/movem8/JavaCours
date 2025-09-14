@@ -1,8 +1,0 @@
-final  =  const; (immuable, non modifiable)
-pour objet String immuable
-
-
-// arithmétique 
-NaN = double not a number
-infinity = float
-negative-invinity = float

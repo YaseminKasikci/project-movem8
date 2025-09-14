@@ -1,6 +1,6 @@
-projectKey=MoveM8-front
+projectKey=move-m8-frontend
 serverUrl=http://localhost:9000
-serverVersion=25.8.0.112029
-dashboardUrl=http://localhost:9000/dashboard?id=MoveM8-front
-ceTaskId=595e05a6-05ea-4afd-8b4e-594ad55cc735
-ceTaskUrl=http://localhost:9000/api/ce/task?id=595e05a6-05ea-4afd-8b4e-594ad55cc735
+serverVersion=9.9.8.100196
+dashboardUrl=http://localhost:9000/dashboard?id=move-m8-frontend
+ceTaskId=AZlJRlP2EUqCrpI5P-JN
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AZlJRlP2EUqCrpI5P-JN

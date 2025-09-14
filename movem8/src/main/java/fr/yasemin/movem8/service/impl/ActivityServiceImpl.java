@@ -17,6 +17,7 @@ import fr.yasemin.movem8.entity.Category;
 import fr.yasemin.movem8.entity.Participant;
 import fr.yasemin.movem8.entity.Sport;
 import fr.yasemin.movem8.entity.User;
+import fr.yasemin.movem8.enums.Level;
 import fr.yasemin.movem8.enums.StatusActivity;
 import fr.yasemin.movem8.enums.StatusParticipant;
 import fr.yasemin.movem8.repository.IActivityRepository;
@@ -106,10 +107,6 @@ public class ActivityServiceImpl implements IActivityService {
 	  }
 
 
-
-
-
-	// src/main/java/fr/yasemin/movem8/service/impl/ActivityServiceImpl.java
 	  @Override
 	  public Activity updateActivityPartial(Long id, ActivityUpdateDTO dto) throws Exception {
 	      Activity a = activityRepository.findById(id)
@@ -165,31 +162,30 @@ public class ActivityServiceImpl implements IActivityService {
 	    }
 	    return activities;
 	  }
-	  
-	@Override
-	public boolean requestParticipant(Long activityId, Long userId) throws Exception {
-		Optional<Activity> activityOpt = activityRepository.findById(activityId);
-		Optional<User> userOpt = userRepository.findById(userId);
 
-		if (activityOpt.isEmpty() || userOpt.isEmpty()) {
-			throw new Exception("Activité ou utilisateur introuvable.");
-		}
+	 @Override
+	  public boolean requestParticipant(Long activityId, Long userId, Level level) {
+	    Activity activity = activityRepository.findById(activityId)
+	        .orElseThrow(() -> new EntityNotFoundException("Activity not found: " + activityId));
 
-		// Vérifie si la participation existe déjà
-		boolean exists = participantRepository.existsByActivityIdAndUserId(activityId, userId);
-		if (exists) {
-			throw new Exception("Demande déjà envoyée ou participation existante.");
-		}
+	    User user = userRepository.findById(userId)
+	        .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
 
-		// Crée une nouvelle participation en attente de validation
-		Participant participant = new Participant();
-		participant.setActivity(activityOpt.get());
-		participant.setUser(userOpt.get());
-		participant.setStatusParticipant(StatusParticipant.W); // En attente de validation
+	    // déjà demandé ?
+	    if (participantRepository.existsByActivityIdAndUserId(activityId, userId)) {
+	      // à toi de décider : renvoyer false, ou OK idempotent.
+	      return true; // idempotent: on considère OK.
+	    }
 
-		participantRepository.save(participant);
-		return true;
-	}
+	    Participant p = new Participant();
+	    p.setActivity(activity);
+	    p.setUser(user);
+	    p.setLevel(level); // ✅ IMPORTANT: plus null
+	    p.setStatusParticipant(StatusParticipant.W); // ou le statut que tu veux par défaut
+
+	    participantRepository.save(p);
+	    return true;
+	  }
 
 	@Override
 	public Participant validateParticipation(Long participantId, Long creatorId) throws Exception {

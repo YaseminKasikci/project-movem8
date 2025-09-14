@@ -43,11 +43,6 @@ public class AuthController {
     /** Inscription minimale (email + mot de passe + confirmation) */
     @PostMapping("/register")
     public ResponseEntity<Void> register(@Valid @RequestBody RegisterRequestDTO req) {
-        if (!req.getPassword().equals(req.getConfirmPassword())) {
-            return ResponseEntity.badRequest()
-                                 .header("Error", "Les mots de passe ne correspondent pas")
-                                 .build();
-        }
         authService.register(req.getEmail(), req.getPassword());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

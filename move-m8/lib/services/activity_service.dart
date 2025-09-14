@@ -64,6 +64,35 @@ class ActivityService extends BaseService {
     throw ApiException(res.statusCode, res.body);
   }
 
+/// PATCH /api/activities/update/{id}  -> met à jour partiellement et renvoie le détail
+  Future<ActivityDetail> update(int id, ActivityUpdateRequest req) async {
+    final uri = ApiConfig.path(['activities', 'update', id.toString()]);
+
+    // on n’envoie que les champs non-nuls
+    final payload = req.toJson();
+
+    if (kDebugMode) {
+      debugPrint('➡️ PATCH $uri');
+      debugPrint('➡️ Body: ${jsonEncode(payload)}');
+    }
+
+    final res = await _client.patch(
+      uri,
+      headers: await headers(),
+      body: jsonEncode(payload),
+    );
+
+    if (kDebugMode) {
+      debugPrint('⬅️ Status: ${res.statusCode}');
+      debugPrint('⬅️ Body: ${res.body}');
+    }
+
+    if (res.statusCode == 200) {
+      return ActivityDetail.fromJson(jsonDecode(res.body));
+    }
+    throw ApiException(res.statusCode, res.body);
+  }
+
   /// GET /api/activities?communityId=...
   Future<List<ActivityCard>> list({int? communityId}) async {
     final base = ApiConfig.path(['activities']);
@@ -83,6 +112,25 @@ class ActivityService extends BaseService {
     if (res.statusCode == 200) {
       final list = jsonDecode(res.body) as List;
       return list.map((e) => ActivityCard.fromJson(e)).toList();
+    }
+    throw ApiException(res.statusCode, res.body);
+  }
+
+    /// DELETE /api/activities/delete/{id}
+  Future<void> delete(int id) async {
+    final uri = ApiConfig.path(['activities', 'delete', id.toString()]);
+
+    if (kDebugMode) debugPrint('➡️ DELETE $uri');
+
+    final res = await _client.delete(uri, headers: await headers());
+
+    if (kDebugMode) {
+      debugPrint('⬅️ Status: ${res.statusCode}');
+      debugPrint('⬅️ Body: ${res.body}');
+    }
+
+    if (res.statusCode == 200) {
+      return; // succès → rien à renvoyer
     }
     throw ApiException(res.statusCode, res.body);
   }

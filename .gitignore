@@ -1,6 +1,5 @@
-
 # Java / Maven
-target/
+movem8/target/
 *.iml
 .idea/
 
@@ -11,16 +10,13 @@ move-m8/.packages
 move-m8/.flutter-plugins*
 move-m8/.metadata
 
-# Node
-node_modules/
+# Docker / secrets
+**/.env
 
 # macOS
 .DS_Store
 
-# Docker / secrets
-**/.env
-
-# Eclipse / VSCode
+# IDE
 .project
 .classpath
 .settings/

@@ -1,0 +1,121 @@
+
+
+services:
+  # --- MySQL (DB API) ---
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: movem8db
+      MYSQL_USER: movem8
+      MYSQL_PASSWORD: movem8pwd
+      MYSQL_ROOT_PASSWORD: rootpwd
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h127.0.0.1 -uroot -prootpwd --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # --- Backend Spring Boot ---
+  backend:
+    build:
+      context: ./movem8
+      dockerfile: Dockerfile
+    container_name: movem8-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/movem8db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: movem8
+      SPRING_DATASOURCE_PASSWORD: movem8pwd
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+      # optionnel:
+      # SPRING_PROFILES_ACTIVE: prod
+
+  # --- Frontend Flutter Web (servi par Nginx) ---
+  frontend:
+    build:
+      context: ./move-m8
+      dockerfile: Dockerfile
+    container_name: movem8-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+    
+
+  # --- Postgres (DB SonarQube) ---
+  sonardb:
+    image: postgres:15
+    container_name: sonardb
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonardb_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar -d sonar -h 127.0.0.1 -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # --- SonarQube ---
+  sonarqube:
+    image: sonarqube:lts
+    container_name: sonarqube
+    depends_on:
+      sonardb:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonardb:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    restart: unless-stopped
+
+  # --- Jenkins (master) ---
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    user: root
+    restart: unless-stopped
+    ports:
+      - "8081:8080"     
+      - "50000:50000"   
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  
+    depends_on:
+      sonarqube:
+        condition: service_started
+
+volumes:
+  mysqldata:
+  sonardb_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  jenkins_home:

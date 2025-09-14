@@ -45,6 +45,7 @@ public class SecurityConfig {
 
                 // Lecture publique que TU souhaites exposer (à ajuster)
                 .requestMatchers(HttpMethod.GET,
+                		"/api/auth/**",
                         "/api/communities/**",
                         "/api/categories/**",
                         "/api/sports/**",

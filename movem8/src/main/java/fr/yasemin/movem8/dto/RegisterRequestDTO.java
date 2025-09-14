@@ -34,4 +34,6 @@ public class RegisterRequestDTO {
     public boolean isPasswordMatching() {
         return password != null && password.equals(confirmPassword);
     }
+
+	
 }

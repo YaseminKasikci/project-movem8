@@ -85,12 +85,12 @@ public class User {
 
 
 	// Liste des participations de l'utilisateur (table de liaison)
-	@OneToMany(mappedBy = "user" , fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Participant> participant; 
 	
 
 	// Relation avec les activités créées par l'utilisateur
-	@OneToMany(mappedBy = "creator", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "creator", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<Activity> createdActivities;
 
 	// Relation avec la communauté à laquelle l'utilisateur appartient
@@ -101,6 +101,4 @@ public class User {
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
 	@JsonBackReference
 	private Auth auth;
-	
-
 }
