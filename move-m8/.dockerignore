@@ -1,0 +1,28 @@
+.git
+.build
+.dart_tool
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache
+android/.gradle
+android/.idea
+build
+ios/Pods
+
+
+
+
+
+# # 1) construire l’image
+# docker compose build
+
+# # 2) installer les deps
+# docker compose run --rm flutter-android flutter pub get
+
+# # 3) vérifier l’environnement
+# docker compose run --rm flutter-android flutter doctor -v
+
+# # 4) build Android
+# docker compose run --rm flutter-android flutter build apk --debug
+# docker compose run --rm flutter-android flutter build appbundle --release
