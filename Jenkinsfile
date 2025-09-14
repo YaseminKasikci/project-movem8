@@ -54,3 +54,6 @@ pipeline {
         }
     }
 }
+
+
+// ok top tout foncitonne ... juste petite precision, mon frontend est pour mobile android / IOS .. est ce que ca change quelque chose pour la configuration du docker, jenkins, sonarqube ?
