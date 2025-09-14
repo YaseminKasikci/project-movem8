@@ -1,0 +1,27 @@
+
+# Java / Maven
+target/
+*.iml
+.idea/
+
+# Flutter
+move-m8/build/
+move-m8/.dart_tool/
+move-m8/.packages
+move-m8/.flutter-plugins*
+move-m8/.metadata
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store
+
+# Docker / secrets
+**/.env
+
+# Eclipse / VSCode
+.project
+.classpath
+.settings/
+.vscode/
