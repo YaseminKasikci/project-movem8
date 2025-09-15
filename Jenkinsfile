@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     tools {
-        // Tu dois les avoir configurés dans "Global Tool Configuration"
+        // Configurés dans Jenkins > Global Tool Configuration
         jdk 'jdk-21'
         maven 'maven-3.9.9'
     }
 
     environment {
-        // Adresse de ton serveur SonarQube (configuré dans Manage Jenkins > Configure System)
+        // Ton token SonarQube (injecté via Credentials Jenkins)
         SONARQUBE_ENV = credentials('sonarqube-token')
     }
 
@@ -28,19 +28,43 @@ pipeline {
             }
         }
 
-        stage('Build Frontend') {
+        stage('Build Android') {
             steps {
                 dir('move-m8') {
-                    sh 'flutter build web --release'
+                    // génère un .aab pour Google Play
+                    sh 'flutter build appbundle --release'
                 }
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Build iOS') {
+            agent { label 'macos' } // ce stage doit tourner sur un agent macOS
+            steps {
+                dir('move-m8') {
+                    // génère un .ipa sans signature
+                    sh 'flutter build ios --release --no-codesign'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis - Backend') {
             steps {
                 dir('movem8') {
                     withSonarQubeEnv('MySonarQube') {
                         sh 'mvn sonar:sonar'
+                    }
+                }
+            }
+        }
+
+        stage('SonarQube Analysis - Frontend') {
+            steps {
+                dir('move-m8') {
+                    withSonarQubeEnv('MySonarQube') {
+                        sh '''
+                          flutter test --coverage
+                          sonar-scanner -Dsonar.login=$SONARQUBE_ENV
+                        '''
                     }
                 }
             }
@@ -54,6 +78,3 @@ pipeline {
         }
     }
 }
-
-
-// ok top tout foncitonne ... juste petite precision, mon frontend est pour mobile android / IOS .. est ce que ca change quelque chose pour la configuration du docker, jenkins, sonarqube ?

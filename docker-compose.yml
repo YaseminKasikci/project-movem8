@@ -7,16 +7,16 @@ services:
     container_name: mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: movem8db
-      MYSQL_USER: movem8
-      MYSQL_PASSWORD: movem8pwd
+      MYSQL_DATABASE: movem8
+      MYSQL_USER: movem8-N3x@@!
+      MYSQL_PASSWORD: Mov3m8!DB-2025
       MYSQL_ROOT_PASSWORD: rootpwd
     command: >
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysqldata:/var/lib/mysql
     healthcheck:
@@ -38,9 +38,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/movem8db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: movem8
-      SPRING_DATASOURCE_PASSWORD: movem8pwd
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/movem8?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: movem8-N3x@@!
+      SPRING_DATASOURCE_PASSWORD: Mov3m8!DB-2025
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
       # optionnel:
