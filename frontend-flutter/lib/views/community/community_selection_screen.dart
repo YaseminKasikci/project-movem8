@@ -8,6 +8,7 @@ import 'package:move_m8/models/community_model.dart';
 import 'package:move_m8/routes/app_routes.dart';
 import 'package:move_m8/services/community_service.dart';
 import 'package:move_m8/services/user_service.dart';
+import 'package:move_m8/widgets/app_drawer.dart';
 
 class CommunitySelectionScreen extends StatefulWidget {
   final AuthModel user;
@@ -26,6 +27,7 @@ class CommunitySelectionScreen extends StatefulWidget {
 
 class _CommunitySelectionScreenState extends State<CommunitySelectionScreen> {
   final _svc = CommunityService();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   bool _isAdmin = false;
   List<CommunityModel> _communities = [];
@@ -234,7 +236,9 @@ class _CommunitySelectionScreenState extends State<CommunitySelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey, 
       backgroundColor: Colors.white,
+      drawer: AppDrawer(email: widget.user.email), 
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -245,7 +249,10 @@ class _CommunitySelectionScreenState extends State<CommunitySelectionScreen> {
                     title: 'Choice your community',
                     leading: widget.pickMode
                         ? const BackButton(color: Colors.white)
-                        : _menuPopup(),
+                        : IconButton(
+                            icon: const Icon(Icons.menu, color: Colors.white),
+                            onPressed: () => _scaffoldKey.currentState?.openDrawer(), 
+                          ),
                   ),
                   const SizedBox(height: 12),
                   Padding(

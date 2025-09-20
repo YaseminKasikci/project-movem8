@@ -38,23 +38,7 @@ public class ActivityController {
     
     @Autowired 
     private IUserRepository userRepository;
-//    @GetMapping("/search")
-//    public List<Activity> searchActivities(
-//            @RequestParam(required = false) String activityName,
-//            @RequestParam(required = false) String category,
-//            @RequestParam(required = false) String sportName,
-//            @RequestParam(required = false) LocalDateTime activityDate,
-//            @RequestParam(required = false) String location,
-//            @RequestParam(required = false) String creatorName,
-//            @RequestParam(required = false) Level level) {
-//
-//        return activityService.searchActivities(activityName, category, sportName, activityDate, location, creatorName, level);
-//    //GET /activities/search?activityName=Yoga&category=Fitness&sportName=Yoga&activityDate=2025-04-12T10:00:00&location=Paris&creatorName=Yasemin&activityLevel=BEGINNER
-//
-//    }
-    
 
-    
 
     //Récupérer activité par id 
     
@@ -105,13 +89,9 @@ public class ActivityController {
       }
     }
 
-
-    // Mettre à jour une activité existante
- // src/main/java/fr/yasemin/movem8/controller/ActivityController.java
-
- // PATCH partiel propre
- @PatchMapping("/update/{id}")
- public ResponseEntity<?> updateActivity(
+    // PATCH partiel propre
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<?> updateActivity(
      @PathVariable Long id,
      @RequestBody ActivityUpdateDTO dto
  ) {
@@ -125,9 +105,8 @@ public class ActivityController {
    } catch (Exception e) {
      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
    }
- }
-
-    
+    }
+  
     // Supprimer une activité
     @DeleteMapping("/delete/{id}")
     // => http://localhost:8080/api/remove/1
@@ -143,8 +122,6 @@ public class ActivityController {
         }
     }
     
-
- 
     @GetMapping("/all")
     public ResponseEntity<List<ActivityCardDTO>> getAllActivitiesDto() {
         try {
@@ -157,9 +134,7 @@ public class ActivityController {
             return ResponseEntity.status(500).body(null);
         }
     }
-
-
-    
+  
     // Demander à participer à une activité
     @PostMapping("/{activityId}/request/{userId}")
     // => http://localhost:8080/api/activities/1/request/1
@@ -175,7 +150,6 @@ public class ActivityController {
         }
     }
 
-    
     // Valider la participation d'un utilisateur à une activité
     @PatchMapping("/{activityId}/validate/{participantId}")
     public ResponseEntity<Participant> validateParticipation(

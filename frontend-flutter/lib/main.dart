@@ -86,7 +86,7 @@ class _MyAppState extends State<MyApp> {
         textTheme: GoogleFonts.poppinsTextTheme(
           Theme.of(context).textTheme.copyWith(
             bodyLarge: const TextStyle(fontSize: 20),
-            titleLarge: const TextStyle(fontSize: 40),
+            titleLarge: const TextStyle(fontSize:27, fontWeight: FontWeight.bold,),
             labelLarge: const TextStyle(fontSize: 20),
           ),
         ),

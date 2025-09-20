@@ -58,7 +58,6 @@ public class ActivityServiceImpl implements IActivityService {
 	        .orElseThrow(() -> new Exception("Activité introuvable: " + id));
 	}
 	
-	
 	  @Transactional
 	  @Override
 	  public Activity createActivity(CreateActivityRequestDTO req) {
@@ -106,7 +105,6 @@ public class ActivityServiceImpl implements IActivityService {
 	    return activityRepository.save(activity);
 	  }
 
-
 	  @Override
 	  public Activity updateActivityPartial(Long id, ActivityUpdateDTO dto) throws Exception {
 	      Activity a = activityRepository.findById(id)
@@ -141,7 +139,6 @@ public class ActivityServiceImpl implements IActivityService {
 	      return activityRepository.save(a);
 	  }
 	  
-
 	  @Override
 	  public boolean deleteActivity(Long id) throws Exception {
 	    if (!activityRepository.existsById(id)) {
@@ -278,7 +275,6 @@ public class ActivityServiceImpl implements IActivityService {
 			throw new EntityNotFoundException("Activity not found");
 		}
 	}
-
 
 	  @Override
 	  public List<Activity> findAllByCommunity(Long communityId) throws Exception {

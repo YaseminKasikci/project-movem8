@@ -73,7 +73,6 @@ public class Activity {
 	@Enumerated(EnumType.STRING)
 	private Level level;
 
-
 	@Column(name = "status_activity", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private StatusActivity statusActivity;

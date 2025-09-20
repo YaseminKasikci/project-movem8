@@ -25,6 +25,25 @@ services:
       timeout: 5s
       retries: 10
 
+  # --- MongoDB (DB NoSQL pour Movem8) ---
+  mongodb:
+    image: mongo:7
+    container_name: movem8-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpwd-mongo
+    volumes:
+      - mongodata:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --username root --password rootpwd-mongo --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   # --- Backend Spring Boot ---
   backend:
     build:
@@ -33,6 +52,8 @@ services:
     container_name: movem8-backend
     depends_on:
       mysql:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy
     restart: unless-stopped
     ports:
@@ -43,6 +64,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: Mov3m8!DB-2025
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+
+      SPRING_DATA_MONGODB_URI: mongodb://movem8_app:Mov3m8!Mongo-2025@mongodb:27017/movem8?authSource=admin
+
       # optionnel:
       # SPRING_PROFILES_ACTIVE: prod
 
@@ -119,3 +143,5 @@ volumes:
   sonarqube_extensions:
   sonarqube_logs:
   jenkins_home:
+  mongodata:
+

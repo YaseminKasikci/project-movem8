@@ -90,7 +90,7 @@ public class SecurityConfig {
             "http://localhost:3000",
             "http://localhost:5173",
             "http://127.0.0.1:5173",
-            "http://192.168.1.198:5173",  // ← ta machine en LAN pour Flutter Web
+            "http://192.168.1.198:5173", 
             "http://localhost"
         ));
         // OU, si tu préfères matcher des IPs LAN variables, utilise plutôt :

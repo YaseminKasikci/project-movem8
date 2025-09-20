@@ -1,28 +1,32 @@
- // lib/config/api_config.dart
+// 📁 lib/config/api_config.dart
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConfig {
+  /// Host par défaut : le nom Bonjour/mDNS de ton Mac
+  /// -> override possible via: flutter run --dart-define=API_HOST=MacBook-Air-de-Moi.local
+  static const String host = String.fromEnvironment(
+    'API_HOST',
+    defaultValue: 'MacBook-Air-de-Moi.local',
+  );
 
-  static const String lanIp = '192.168.1.33';///'192.168.72.126';
-
-  /// Hôte en fonction de la plateforme
+  /// Sélection du host en fonction de la plateforme
   static String get _host {
     if (kIsWeb) return 'localhost';
     if (Platform.isAndroid) return '10.0.2.2'; // émulateur Android
-    if (Platform.isIOS) {
-      // iOS Simulator: 'localhost' marche aussi.
-      // iPhone physique: remplace par ton IP LAN (idem ci-dessus).
-      // -> Choix simple : utilise l’IP LAN pour iOS (simu + device).
-      return lanIp;
-    }
+    if (Platform.isIOS) return host;           // iOS simu + device (mDNS)
     return 'localhost';
   }
 
   static const int _port = 8080;
 
   /// Base de l’API: http://host:port/api
-  static Uri get base => Uri(scheme: 'http', host: _host, port: _port, path: 'api');
+  static Uri get base => Uri(
+        scheme: 'http',
+        host: _host,
+        port: _port,
+        path: 'api',
+      );
 
   /// Helpers pour construire des Uris propres
   static Uri path(List<String> segments) => base.replace(
@@ -37,25 +41,23 @@ class ApiConfig {
   static Uri get sports      => path(['sports']);
   static Uri get activities  => path(['activities']);
 
-  /// Utilitaire: corrige un URL d’image "localhost" -> host courant (10.0.2.2 / LAN)
+  /// Utilitaire: corrige un URL d’image "localhost" -> host courant (10.0.2.2 / .local)
   static String fixImageHost(String url) {
-  try {
-    final u = Uri.parse(url);
-    // Liste des hosts à réécrire (localhost + réseaux privés courants)
-    final hostsToRewrite = {
-      'localhost',
-      '127.0.0.1',
-      '10.0.2.2',
-      // tout 192.168.x.x
-      if (u.host.startsWith('192.168.')) u.host,
-    };
-    if (hostsToRewrite.contains(u.host)) {
-      return u.replace(host: _host, port: _port).toString();
+    try {
+      final u = Uri.parse(url);
+      // Hosts à réécrire
+      final hostsToRewrite = {
+        'localhost',
+        '127.0.0.1',
+        '10.0.2.2',
+        if (u.host.startsWith('192.168.')) u.host, // ex. anciens liens LAN
+      };
+      if (hostsToRewrite.contains(u.host)) {
+        return u.replace(host: _host, port: _port).toString();
+      }
+      return url;
+    } catch (_) {
+      return url;
     }
-    return url;
-  } catch (_) {
-    return url;
   }
 }
-}
-
