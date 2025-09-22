@@ -1,9 +1,13 @@
+// lib/widgets/app_drawer.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:move_m8/config/api_config.dart';
 import 'package:move_m8/routes/app_routes.dart';
+import 'package:move_m8/services/user_service.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   final String email;
-  final String? avatarUrl; // photo de profil éventuelle
+  final String? avatarUrl; // optionnel : si null, on va la chercher
 
   const AppDrawer({
     Key? key,
@@ -11,8 +15,45 @@ class AppDrawer extends StatelessWidget {
     this.avatarUrl,
   }) : super(key: key);
 
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
   static const Color moveM8 = Color(0xFF5CC7B4);
   static const Color danger = Colors.red;
+
+  String _fixedUrl = '';
+  bool _loadingAvatar = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 1) utilise l’URL passée si dispo
+    if ((widget.avatarUrl ?? '').isNotEmpty) {
+      _fixedUrl = ApiConfig.fixImageHost(widget.avatarUrl!.trim());
+    } else {
+      // 2) sinon, va chercher la photo du user
+      _fetchAvatar();
+    }
+  }
+
+  Future<void> _fetchAvatar() async {
+    setState(() => _loadingAvatar = true);
+    try {
+      final me = await UserService().getMyProfile();
+      final raw = (me.pictureProfile ?? '').trim();
+      if (!mounted) return;
+      setState(() {
+        _fixedUrl = raw.isEmpty ? '' : ApiConfig.fixImageHost(raw);
+      });
+      debugPrint('AppDrawer fetched avatar raw="$raw" fixed="$_fixedUrl"');
+    } catch (e) {
+      debugPrint('AppDrawer avatar fetch error: $e');
+    } finally {
+      if (mounted) setState(() => _loadingAvatar = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,17 +73,42 @@ class AppDrawer extends StatelessWidget {
                   CircleAvatar(
                     radius: 32,
                     backgroundColor: Colors.white,
-                    backgroundImage: (avatarUrl != null && avatarUrl!.isNotEmpty)
-                        ? NetworkImage(avatarUrl!)
-                        : null,
-                    child: (avatarUrl == null || avatarUrl!.isEmpty)
-                        ? const Icon(Icons.person,
-                            size: 40, color: moveM8)
-                        : null,
+                    child: ClipOval(
+                      child: SizedBox(
+                        width: 64,
+                        height: 64,
+                        child: _fixedUrl.isEmpty
+                            ? (_loadingAvatar
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.person,
+                                    size: 40, color: moveM8))
+                            : Image.network(
+                                _fixedUrl,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (c, child, prog) {
+                                  if (prog == null) return child;
+                                  return const Center(
+                                      child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ));
+                                },
+                                errorBuilder: (c, err, st) {
+                                  debugPrint(
+                                      '❌ Drawer avatar load error for "$_fixedUrl": $err');
+                                  return const Icon(Icons.person,
+                                      size: 40, color: moveM8);
+                                },
+                              ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    email,
+                    widget.email,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.white,
@@ -82,10 +148,8 @@ class AppDrawer extends StatelessWidget {
             // ----- DÉCONNEXION -----
             ListTile(
               leading: const Icon(Icons.logout, color: danger),
-              title: const Text(
-                'Déconnexion',
-                style: TextStyle(color: danger),
-              ),
+              title: const Text('Déconnexion',
+                  style: TextStyle(color: danger)),
               onTap: () => Navigator.pushNamedAndRemoveUntil(
                 context,
                 AppRoutes.login,

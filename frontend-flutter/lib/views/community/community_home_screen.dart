@@ -1,6 +1,8 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:move_m8/models/user_model.dart';
+import 'package:move_m8/services/user_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/auth_model.dart';
@@ -11,7 +13,7 @@ import '../../widgets/plus_fab.dart';
 // Onglets
 import '../nav_bar/maps_screen.dart';
 import '../nav_bar/notification_screen.dart';
-import '../nav_bar/messages_screen.dart';
+import '../nav_bar/conversation_screen.dart';
 import '../nav_bar/historic_screen.dart';
 import '../nav_bar/create_activity_screen.dart';
 
@@ -39,20 +41,44 @@ class CommunityHomeScreen extends StatefulWidget {
 }
 
 class _CommunityHomeScreenState extends State<CommunityHomeScreen> {
-  late int _currentIndex;
-  late CommunityModel _current;
-  late List<Widget> _pages;
+ UserModel? _me;
+bool _loadingMe = true;
+late int _currentIndex;
+late CommunityModel _current;
+late List<Widget> _pages;
 
-  /// Flag éphémère pour ouvrir Maps > Liste juste après une création
-  bool _openListAfterCreate = false;
+final UserService _userService = UserService();
+bool _openListAfterCreate = false;
 
   @override
-  void initState() {
-    super.initState();
-    _current = widget.community;
-    _currentIndex = widget.initialIndex;
-    _rebuildPages();
+@override
+void initState() {
+  super.initState();
+  _current = widget.community;
+  _currentIndex = widget.initialIndex;
+  _loadMe(); // charge l'utilisateur puis reconstruit les pages
+}
+Future<void> _loadMe() async {
+  try {
+    final me = await _userService.getMyProfile();
+    if (!mounted) return;
+    setState(() {
+      _me = me;
+      _loadingMe = false;
+      _rebuildPages();
+    });
+  } catch (_) {
+    if (!mounted) return;
+    setState(() {
+      _loadingMe = false;
+      _rebuildPages(); // on reconstruit quand même (sans _me)
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Impossible de charger ton profil")),
+    );
   }
+}
+
 
   void _rebuildPages() {
     // Si on doit ouvrir la liste : mapsOpenListTab (prop) OU _openListAfterCreate (runtime)
@@ -69,7 +95,13 @@ class _CommunityHomeScreenState extends State<CommunityHomeScreen> {
       // Slot central réservé au FAB (+) -> on met un placeholder
       const SizedBox.shrink(),
 
-      MessagesScreen(community: _current),
+     if (_me != null)
+    ConversationsScreen(
+      community: _current,
+      currentUserId: _me!.id.toString(),
+    )
+  else
+    const Center(child: CircularProgressIndicator()),
       HistoricScreen(community: _current),
     ];
   }
@@ -122,7 +154,9 @@ class _CommunityHomeScreenState extends State<CommunityHomeScreen> {
         ),
        
       ),
-      body: IndexedStack(index: _currentIndex, children: _pages),
+          body: _loadingMe
+        ? const Center(child: CircularProgressIndicator())
+        : IndexedStack(index: _currentIndex, children: _pages),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: PlusFAB(

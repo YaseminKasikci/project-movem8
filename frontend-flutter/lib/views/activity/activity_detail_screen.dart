@@ -8,6 +8,7 @@ import 'package:move_m8/enums/level.dart';
 import 'package:move_m8/models/activity_model.dart' as models;
 import 'package:move_m8/models/community_model.dart';
 import 'package:move_m8/models/user_model.dart';
+import 'package:move_m8/views/message/chat_messags_screen.dart';
 
 import 'package:move_m8/services/activity_service.dart';
 import 'package:move_m8/services/auth_service.dart';
@@ -17,6 +18,7 @@ import '../nav_bar/create_activity_screen.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
   final models.ActivityDetail activity;
+  
 
   const ActivityDetailScreen({super.key, required this.activity});
 
@@ -55,11 +57,46 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     }
   }
 
+String get _conversationIdWithOrganizer {
+  return 'community-${widget.activity.communityId}-activity-${widget.activity.id}-creator-${widget.activity.creatorId}';
+}
+
+
   bool get _isCreator {
     if (_me == null) return false;
     return widget.activity.creatorId != null &&
         widget.activity.creatorId == _me!.id;
   }
+
+ Future<void> _openChatWithOrganizer() async {
+  if (_me == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Veuillez vous reconnecter.')),
+    );
+    return;
+  }
+  if (widget.activity.creatorId == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Organisateur inconnu.")),
+    );
+    return;
+  }
+
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => ChatScreen(
+        conversationId: _conversationIdWithOrganizer,
+        currentUserId: _me!.id.toString(),
+        community: CommunityModel(
+          id: widget.activity.communityId ?? 0,
+          communityName: '',
+        ),
+      ),
+    ),
+  );
+}
+
+
 
   String get _prettyDate =>
       DateFormat('EEEE d MMMM', 'fr_FR').format(widget.activity.dateHour);
@@ -463,69 +500,90 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   // --- Actions pour les autres : Niveau + Participer ---
-  List<Widget> _buildParticipantActions(Color accent) {
-    return [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Text(
-          'Do you want to participate ? What is your level on this sport ?',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.w700),
-        ),
+  // --- Actions pour les autres : Niveau + Participer ---
+List<Widget> _buildParticipantActions(Color accent) {
+  return [
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        'Do you want to participate ? What is your level on this sport ?',
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontWeight: FontWeight.w700),
       ),
-      const SizedBox(height: 8),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Wrap(
-          spacing: 8,
-          children: Level.values.map((level) {
-            final selected = _selectedLevel == level;
-            final color = _hexToColor(level.color);
-            return FilterChip(
-              label: Text(level.label),
-              selected: selected,
-              backgroundColor: color.withOpacity(0.2),
-              selectedColor: color,
-              labelStyle: TextStyle(
-                color: selected ? Colors.white : color,
-                fontWeight: FontWeight.w600,
-              ),
-              onSelected: (v) =>
-                  setState(() => _selectedLevel = v ? level : null),
-            );
-          }).toList(),
-        ),
-      ),
-      const SizedBox(height: 12),
-      Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Center(
-          child: SizedBox(
-            width: 220,
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: accent, width: 1.5),
-                foregroundColor: accent,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(22)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              onPressed: _requesting ? null : _requestParticipation,
-              child: _requesting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Participate'),
+    ),
+    const SizedBox(height: 8),
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Wrap(
+        spacing: 8,
+        children: Level.values.map((level) {
+          final selected = _selectedLevel == level;
+          final color = _hexToColor(level.color);
+          return FilterChip(
+            label: Text(level.label),
+            selected: selected,
+            backgroundColor: color.withOpacity(0.2),
+            selectedColor: color,
+            labelStyle: TextStyle(
+              color: selected ? Colors.white : color,
+              fontWeight: FontWeight.w600,
             ),
+            onSelected: (v) =>
+                setState(() => _selectedLevel = v ? level : null),
+          );
+        }).toList(),
+      ),
+    ),
+    const SizedBox(height: 12),
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Center(
+        child: SizedBox(
+          width: 220,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: accent, width: 1.5),
+              foregroundColor: accent,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(22)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            onPressed: _requesting ? null : _requestParticipation,
+            child: _requesting
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Text('Participate'),
           ),
         ),
       ),
-    ];
-  }
+    ),
+
+    // 👉 Bouton Message organizer ajouté ici
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          icon: const Icon(Icons.chat_bubble_outline),
+          style: OutlinedButton.styleFrom(
+            side: BorderSide(color: accent, width: 1.5),
+            foregroundColor: accent,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22)),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+          onPressed: _openChatWithOrganizer,
+          label: const Text('Message organizer'),
+        ),
+      ),
+    ),
+  ];
+}
+
 }
 
 /// ---------------- Widgets privés ----------------

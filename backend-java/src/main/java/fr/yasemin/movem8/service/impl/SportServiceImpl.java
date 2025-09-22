@@ -47,16 +47,16 @@ public class SportServiceImpl implements ISportService {
 	                directory.mkdirs();
 	            }
 
-	            // 🔒 Nom unique pour éviter les conflits
+	            //  Nom unique pour éviter les conflits
 	            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-	            // 💾 Chemin final du fichier
+	            //  Chemin final du fichier
 	            Path filePath = Paths.get(uploadDir, fileName);
 
-	            // 📥 Sauvegarde du fichier
+	            //  Sauvegarde du fichier
 	            file.transferTo(filePath.toFile());
 
-	            // 🌐 URL d'accès public (à adapter si tu es en prod)
+	            //  URL d'accès public (à adapter si tu es en prod)
 	            String fileUrl = "http://localhost:8080/upload/sports/" + fileName;
 	            sport.setIconUrl(fileUrl);
 	        }

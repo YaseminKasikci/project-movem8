@@ -42,6 +42,9 @@ public class SecurityConfig {
 
                 // ⚠️ IMAGES/ICÔNES en accès public
                 .requestMatchers("/upload/**").permitAll()
+                
+                // OUVERTURE des endpoints chat pour tests (GET/POST)
+                .requestMatchers("/api/chat/**").permitAll()
 
                 // Lecture publique que TU souhaites exposer (à ajuster)
                 .requestMatchers(HttpMethod.GET,
@@ -52,6 +55,7 @@ public class SecurityConfig {
                         "/api/activities",
                         "/api/activities/all",
                         "/api/activities/*"
+                    
                 ).permitAll()
 
                 // Upload d'images: nécessite être connecté
@@ -70,7 +74,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/communities/**", "/api/categories/**", "/api/sports/**").hasRole("ADMIN")
 
                 // Le reste: authentifié
-                .anyRequest().authenticated()
+//                .anyRequest().authenticated()
+                .anyRequest().permitAll()
+
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, e) -> res.sendError(HttpServletResponse.SC_UNAUTHORIZED))
