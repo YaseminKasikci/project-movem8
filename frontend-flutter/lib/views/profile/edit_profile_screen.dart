@@ -108,7 +108,7 @@ final request = http.MultipartRequest('POST', uri)
     await http.MultipartFile.fromPath(
       'file',
       jpegImage.path,
-      contentType: MediaType('image', 'jpeg'), // ✅ explicite
+      contentType: MediaType('image', 'jpeg'), 
     ),
   );
 

@@ -511,7 +511,7 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
                             decoration: const InputDecoration(
                               prefixIcon: Icon(Icons.access_time),
                               labelText: 'Heure',
-                              hintText: '16h30',
+                              hintText: '00h000',
                               border: OutlineInputBorder(),
                             ),
                             onTap: _selectTime,
@@ -547,7 +547,7 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
                       controller: _priceCtrl,
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.euro),
-                        hintText: '0 (gratuit) ou 16',
+                        hintText: 'ex: 13',
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,

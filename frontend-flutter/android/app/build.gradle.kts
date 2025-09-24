@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "fr.yasemin.movem8" // ✅ ton vrai namespace
+    namespace = "fr.yasemin.movem8" 
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "fr.yasemin.movem8" // ✅ même chose que namespace
+        applicationId = "fr.yasemin.movem8" 
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

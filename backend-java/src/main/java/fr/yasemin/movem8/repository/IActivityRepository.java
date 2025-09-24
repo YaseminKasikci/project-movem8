@@ -18,4 +18,5 @@ public interface IActivityRepository extends JpaRepository<Activity, Long>{
 	
 	// pour lister les activités d'une communauté
     List<Activity> findAllByCommunityIdOrderByDateHourDesc(Long communityId);
+    
 }

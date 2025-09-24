@@ -99,18 +99,7 @@ public class AuthServiceImpl implements IAuthService {
         return auth;
     }
 
-    /**
-     * Sauvegarde un JWT dans l’entité Auth.
-     *
-     * @param auth l’entité Auth concernée
-     * @param jwt  le token JWT généré
-     */
-    @Override
-    public void saveToken(Auth auth, String jwt) {
-        auth.setToken(jwt);
-        authRepository.save(auth);
-    }
-
+  
     /**
      * Étape 1 du login à deux facteurs :
      * - Vérifie email + mot de passe
@@ -124,12 +113,9 @@ public class AuthServiceImpl implements IAuthService {
      */
     @Override
     public void initiateLogin(String email, String password) {
-        Auth auth = authRepository.findByEmail(email)
-                     .orElseThrow(() -> new RuntimeException("Email ou mot de passe incorrect"));
-        
-        if (!passwordEncoder.matches(password, auth.getPasswordHash())) {
-            throw new RuntimeException("Email ou mot de passe incorrect");
-        }
+    	  Auth auth = login(email, password);
+    	    // si 2FA non activé pour cet utilisateur, tu peux directement émettre le JWT ici
+    	    // sinon : générer l’OTP
 
         // Génère un OTP aléatoire à 6 chiffres
         String code = String.format("%06d", new Random().nextInt(1_000_000));
@@ -199,6 +185,19 @@ public class AuthServiceImpl implements IAuthService {
         
         return jwt;
     }
+    
+    /**
+     * Sauvegarde un JWT dans l’entité Auth.
+     *
+     * @param auth l’entité Auth concernée
+     * @param jwt  le token JWT généré
+     */
+    @Override
+    public void saveToken(Auth auth, String jwt) {
+        auth.setToken(jwt);
+        authRepository.save(auth);
+    }
+
 
     /**
      * Génère un token de réinitialisation de mot de passe.

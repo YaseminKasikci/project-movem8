@@ -68,7 +68,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: Mov3m8!DB-2025
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
-
       SPRING_DATA_MONGODB_URI: mongodb://movem8_app:Mov3m8!Mongo-2025@mongodb:27017/movem8?authSource=admin
 
       # optionnel:

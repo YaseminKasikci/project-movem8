@@ -116,28 +116,32 @@ class _ChooseSportScreenState extends State<ChooseSportScreen> {
     );
   }
 
-  void _showCreateOrEditSheet({SportModel? sport}) {
-    final controller = TextEditingController(text: sport?.sportName ?? "");
-    File? selectedFile;
-    String? selectedFileName;
+ void _showCreateOrEditSheet({SportModel? sport}) {
+  final controller = TextEditingController(text: sport?.sportName ?? "");
+  File? selectedFile;
+  String? selectedFileName;
+  bool saving = false;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-            top: 24,
-          ),
-          child: StatefulBuilder(
-            builder: (context, setModalState) {
-              return Column(
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true, // ✅ important
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (context, setModalState) {
+          final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(
+              left: 16, right: 16, top: 24, bottom: bottomInset + 16,
+            ),
+            child: SingleChildScrollView( // ✅ scrollable quand clavier ouvert
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
@@ -148,7 +152,10 @@ class _ChooseSportScreenState extends State<ChooseSportScreen> {
 
                   TextField(
                     controller: controller,
+                    autofocus: true, // ✅ focus direct
+                    textInputAction: TextInputAction.done,
                     decoration: const InputDecoration(labelText: "Nom du sport"),
+                    onSubmitted: (_) => FocusScope.of(ctx).unfocus(),
                   ),
 
                   const SizedBox(height: 16),
@@ -156,7 +163,9 @@ class _ChooseSportScreenState extends State<ChooseSportScreen> {
                   Row(
                     children: [
                       ElevatedButton.icon(
-                        onPressed: () async {
+                        onPressed: saving ? null : () async {
+                          // ✅ Défocus avant d’ouvrir le picker
+                          FocusScope.of(ctx).unfocus();
                           final result = await FilePicker.platform.pickFiles(
                             type: FileType.custom,
                             allowedExtensions: ['png', 'svg'],
@@ -186,39 +195,56 @@ class _ChooseSportScreenState extends State<ChooseSportScreen> {
 
                   const SizedBox(height: 16),
 
-                  ElevatedButton(
-                    onPressed: () async {
-                      final name = controller.text.trim();
-                      if (name.isEmpty) return;
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: saving ? null : () async {
+                        final name = controller.text.trim();
+                        if (name.isEmpty) return;
 
-                      try {
-                        if (sport == null) {
-                          await _sportService.create(widget.category.id, name, selectedFile);
-                        } else {
-                          await _sportService.update(sport.id, name, selectedFile);
-                        }
-                        if (!mounted) return;
-                        Navigator.pop(ctx);
-                        await _loadSports();
-                      } catch (e) {
-                        if (mounted) {
+                        // ✅ Fermer le clavier, montrer état "saving"
+                        FocusScope.of(ctx).unfocus();
+                        setModalState(() => saving = true);
+
+                        try {
+                          if (sport == null) {
+                            await _sportService.create(widget.category.id, name, selectedFile);
+                          } else {
+                            await _sportService.update(sport.id, name, selectedFile);
+                          }
+                          if (!mounted) return;
                           Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Erreur lors de l’enregistrement")),
-                          );
+                          await _loadSports();
+                        } catch (e) {
+                          if (mounted) {
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Erreur lors de l’enregistrement")),
+                            );
+                          }
                         }
-                      }
-                    },
-                    child: const Text("Enregistrer"),
+                      },
+                      child: saving
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 6),
+                            child: SizedBox(
+                              height: 18, width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : const Text("Enregistrer"),
+                    ),
                   ),
                 ],
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 
   Color _getColorFromHex(String hex) {
     final hexCode = hex.replaceAll('#', '');

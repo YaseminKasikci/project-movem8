@@ -170,15 +170,15 @@ public class ActivityServiceImpl implements IActivityService {
 
 	    // déjà demandé ?
 	    if (participantRepository.existsByActivityIdAndUserId(activityId, userId)) {
-	      // à toi de décider : renvoyer false, ou OK idempotent.
+	   
 	      return true; // idempotent: on considère OK.
 	    }
 
 	    Participant p = new Participant();
 	    p.setActivity(activity);
 	    p.setUser(user);
-	    p.setLevel(level); // ✅ IMPORTANT: plus null
-	    p.setStatusParticipant(StatusParticipant.W); // ou le statut que tu veux par défaut
+	    p.setLevel(level);
+	    p.setStatusParticipant(StatusParticipant.W); 
 
 	    participantRepository.save(p);
 	    return true;
